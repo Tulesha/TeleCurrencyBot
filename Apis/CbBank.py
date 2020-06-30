@@ -10,7 +10,7 @@ Rate = namedtuple('Rate', 'name,rate')
 
 
 class ParserError(Exception):
-    """Неизвестное ошибка при запросе API CB"""
+    """Неизвестная ошибка при запросе API CB"""
 
 
 def parser_cb_xml(date_now: datetime.date):
@@ -105,7 +105,7 @@ class CbBank:
 
 if __name__ == '__main__':
     try:
-        bank = CbBank(datetime.date(2020, 8, 2))
+        bank = CbBank(datetime.date(2015, 8, 2))
         print(bank.get_rates_usd())
         print(bank.get_rates_eur())
         print(bank.get_rates_gbp())
