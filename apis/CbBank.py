@@ -1,15 +1,14 @@
-from logging import getLogger
+import logging
 import datetime
 
 import xmltodict
 import requests
 from collections import namedtuple
 
-logger = getLogger(__name__)
 Rate = namedtuple('Rate', 'name,rate')
 
 
-class ParserError(Exception):
+class ParserErrorXML(Exception):
     """Неизвестная ошибка при запросе API CB"""
 
 
@@ -25,8 +24,8 @@ def parser_cb_xml(date_now: datetime.date):
         resp = r.text
         return xmltodict.parse(resp)
     except Exception:
-        logger.exception("Parser error")
-        raise ParserError
+        logging.exception("Parser error")
+        raise ParserErrorXML
 
 
 def str_to_float(item: str):
@@ -53,7 +52,7 @@ class CbBank:
             return None
 
         except Exception:
-            logger.exception("Invalid key")
+            logging.exception("Invalid key")
             raise KeyError
 
     def get_rates_eur(self):
@@ -69,7 +68,7 @@ class CbBank:
             return None
 
         except Exception:
-            logger.exception("Invalid key")
+            logging.exception("Invalid key")
             raise KeyError
 
     def get_rates_gbp(self):
@@ -84,7 +83,7 @@ class CbBank:
                     return r
             return None
         except Exception:
-            logger.exception("Invalid key")
+            logging.exception("Invalid key")
             raise KeyError
 
     def get_rates_jpy(self):
@@ -99,20 +98,5 @@ class CbBank:
                     return r
             return None
         except Exception:
-            logger.exception("Invalid key")
+            logging.exception("Invalid key")
             raise KeyError
-
-
-if __name__ == '__main__':
-    try:
-        bank = CbBank(datetime.date(2015, 8, 2))
-        print(bank.get_rates_usd())
-        print(bank.get_rates_eur())
-        print(bank.get_rates_gbp())
-        print(bank.get_rates_jpy())
-    except KeyError:
-        logger.info("Invalid key")
-    except ParserError:
-        logger.info("Parser error")
-    except ValueError:
-        logger.info("Value error")
