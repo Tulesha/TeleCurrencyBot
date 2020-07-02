@@ -42,7 +42,7 @@ class Myfin:
     """
     __city_name = None
     __currency_name = None
-    bank_list = list()
+    __info = None
 
     def __init__(self, currency_name: str, city_name: str):
         """
@@ -52,6 +52,7 @@ class Myfin:
         """
         self.__city_name = city_name
         self.__currency_name = currency_name
+        self.__info = parser_HTML(self.__currency_name, self.__city_name)
 
     def get_rate(self):
         """
@@ -59,11 +60,10 @@ class Myfin:
         :return: возвращает данные по курсу валюты в определенном городе
         :raise MyFinBankError: выбрасывается тогда, когда нам не удалось получить данные
         """
-        self.bank_list.clear()
+        bank_list = list()
         try:
-            info = parser_HTML(self.__currency_name, self.__city_name)
-            info_odd = info.find_all('tr', {'class': 'row body tr-turn odd'})
-            info_even = info.find_all('tr', {'class': 'row body tr-turn even'})
+            info_odd = self.__info.find_all('tr', {'class': 'row body tr-turn odd'})
+            info_even = self.__info.find_all('tr', {'class': 'row body tr-turn even'})
 
             for item in info_odd:
                 bank_name = item.find('td', {'class': 'bank_name'}).text
@@ -73,7 +73,7 @@ class Myfin:
 
                 r = Rate(bank_name=bank_name, rate_buy=rate_buy,
                          rate_sell=rate_sell)
-                self.bank_list.append(r)
+                bank_list.append(r)
 
             for item in info_even:
                 bank_name = item.find('td', {'class': 'bank_name'}).text
@@ -83,9 +83,9 @@ class Myfin:
 
                 r = Rate(bank_name=bank_name, rate_buy=rate_buy,
                          rate_sell=rate_sell)
-                self.bank_list.append(r)
+                bank_list.append(r)
 
-            return self.bank_list
+            return bank_list
 
         except AttributeError:
             raise MyFinBankError
