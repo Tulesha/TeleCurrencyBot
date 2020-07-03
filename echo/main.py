@@ -113,7 +113,7 @@ def do_cb(message):
     except CentralBankError:
         bot.send_message(
             chat_id,
-            'По данной дате ничего не найдено'
+            'По данной дате ничего не найдено. Вы вышли за пределы.'
         )
     except ValueError:
         bot.send_message(
@@ -127,6 +127,58 @@ def do_cb(message):
         )
 
 
+def get_currency_test(text: str):
+    result = re.findall(r'доллар|евр|юан|фунт|иен|', text)
+    result += re.findall(
+        r'благовещенск|архангельск|астрахан|белгород|брянск|владимир|волгоград|вологд|воронеж|иванов|иркутск|'
+        r'калининград|калуг|петропавловс|кемерово|киров|костром|курган|курск|санкт-петербург|липецк|магадан|'
+        r'москв|мурманск|нижн|велик|новосибирск|омск|оренбург|пенз|перм|псков|ростов|рязан|самар|саратов|'
+        r'южн|екатеринбург|смоленск|тамбов|тул|тюмен|ульяновск|челябинск|чит|ярославл|майкоп|горно-алтайск|'
+        r'уф|улан-уде|махачкал|биробиджан|нальчик|элист|черкесск|петрозавосдск|сыктывкар|симферопол|йошкар-ол|'
+        r'саранск|якутск|владикавказ|казан|кызыл|ижевск|абакан|грозн|чебоксар|барнаул|краснодар|красноярск|'
+        r'владивосток|ставропол|хабаровск|нарьян-мар|ханты-мансийск|анадыр|салехард', text)
+    result = list(filter(lambda a: a != '', result))
+
+    if len(result) == 2:
+        curr_url = ''
+        for currency_key, currency_value in currencies.items():
+            if currency_key.lower().find(result[0]) > -1:
+                curr_url = currency_value
+                text = currency_key + '\n'
+                break
+
+        city_url = ''
+        for city_key, city_value in cities.items():
+            if city_key.lower().find(result[1]) > -1:
+                city_url = city_value
+                text += 'г.' + city_key + '\n'
+                break
+
+        try:
+            myFin = Myfin(curr_url, city_url)
+            banks = myFin.get_rate()
+
+            if len(banks) >= 5:
+                banks = banks[0:5]
+                for bank in banks:
+                    text += f'{bank.bank_name}\nПокупка: {bank.rate_buy} руб.\n' \
+                            f'Продажа: {bank.rate_sell} руб.\n\n'
+            elif len(banks) == 0:
+                text += 'Видимо эта валюты не присутствует в городе'
+            else:
+                for bank in banks:
+                    text += f'{bank.bank_name}\nПокупка: {bank.rate_buy} руб.\n' \
+                            f'Продажа: {bank.rate_sell} руб.\n\n'
+
+            return text
+        except MyFinBankError:
+            text = 'Произошла неизвестная ошибка'
+            return text
+    else:
+        text = 'Прости, но я ничего не нашел'
+        return text
+
+
 @bot.message_handler(content_types=['text'])
 def do_get_curr(message):
     """
@@ -137,123 +189,19 @@ def do_get_curr(message):
     if message.chat.type == "private":
         chat_id = message.chat.id
         text = str(message.text).lower()
-        result = re.findall(r'доллар|евр|юан|фунт|иен|', text)
-        result += re.findall(
-            r'благовещенск|архангельск|астрахан|белгород|брянск|владимир|волгоград|вологд|воронеж|иванов|иркутск|'
-            r'калининград|калуг|петропавловс|кемерово|киров|костром|курган|курск|санкт-петербург|липецк|магадан|'
-            r'москв|мурманск|нижн|велик|новосибирск|омск|оренбург|пенз|перм|псков|ростов|рязан|самар|саратов|'
-            r'южн|екатеринбург|смоленск|тамбов|тул|тюмен|ульяновск|челябинск|чит|ярославл|майкоп|горно-алтайск|'
-            r'уф|улан-уде|махачкал|биробиджан|нальчик|элист|черкесск|петрозавосдск|сыктывкар|симферопол|йошкар-ол|'
-            r'саранск|якутск|владикавказ|казан|кызыл|ижевск|абакан|грозн|чебоксар|барнаул|краснодар|красноярск|'
-            r'владивосток|ставропол|хабаровск|нарьян-мар|ханты-мансийск|анадыр|салехард', text)
-        result = list(filter(lambda a: a != '', result))
-
-        if len(result) == 2:
-            curr_url = ''
-            for currency_key, currency_value in currencies.items():
-                if currency_key.lower().find(result[0]) > -1:
-                    curr_url = currency_value
-                    text = currency_key + '\n'
-                    break
-
-            city_url = ''
-            for city_key, city_value in cities.items():
-                if city_key.lower().find(result[1]) > -1:
-                    city_url = city_value
-                    text += 'г.' + city_key + '\n'
-                    break
-
-            try:
-                myFin = Myfin(curr_url, city_url)
-                banks = myFin.get_rate()
-
-                if len(banks) >= 5:
-                    banks = banks[0:5]
-                    for bank in banks:
-                        text += f'{bank.bank_name}\nПокупка: {bank.rate_buy} руб.\n' \
-                                f'Продажа: {bank.rate_sell} руб.\n\n'
-                elif len(banks) == 0:
-                    text += 'Видимо эта валюты не присутствует в городе'
-                else:
-                    for bank in banks:
-                        text += f'{bank.bank_name}\nПокупка: {bank.rate_buy} руб.\n' \
-                                f'Продажа: {bank.rate_sell} руб.\n\n'
-            except MyFinBankError:
-                bot.send_message(
-                    chat_id,
-                    'Произошла неизвестная ошибка'
-                )
-
-            bot.send_message(
-                chat_id,
-                text
-            )
-        else:
-            bot.send_message(
-                chat_id,
-                'Прости, но я ничего не нашел'
-            )
+        bot.send_message(
+            chat_id,
+            get_currency_test(text)
+        )
 
     if message.chat.type == "group":
         chat_id = message.chat.id
         text = str(message.text).lower()
         if text.find('@Currency_ITMO_bot'.lower()) > -1:
-            result = re.findall(r'доллар|евр|юан|фунт|иен|', text)
-            result += re.findall(
-                r'благовещенск|архангельск|астрахан|белгород|брянск|владимир|волгоград|вологд|воронеж|иванов|иркутск|'
-                r'калининград|калуг|петропавловс|кемерово|киров|костром|курган|курск|санкт-петербург|липецк|магадан|'
-                r'москв|мурманск|нижн|велик|новосибирск|омск|оренбург|пенз|перм|псков|ростов|рязан|самар|саратов|'
-                r'южн|екатеринбург|смоленск|тамбов|тул|тюмен|ульяновск|челябинск|чит|ярославл|майкоп|горно-алтайск|'
-                r'уф|улан-уде|махачкал|биробиджан|нальчик|элист|черкесск|петрозавосдск|сыктывкар|симферопол|йошкар-ол|'
-                r'саранск|якутск|владикавказ|казан|кызыл|ижевск|абакан|грозн|чебоксар|барнаул|краснодар|красноярск|'
-                r'владивосток|ставропол|хабаровск|нарьян-мар|ханты-мансийск|анадыр|салехард', text)
-            result = list(filter(lambda a: a != '', result))
-
-            if len(result) == 2:
-                curr_url = ''
-                for currency_key, currency_value in currencies.items():
-                    if currency_key.lower().find(result[0]) > -1:
-                        curr_url = currency_value
-                        text = currency_key + '\n'
-                        break
-
-                city_url = ''
-                for city_key, city_value in cities.items():
-                    if city_key.lower().find(result[1]) > -1:
-                        city_url = city_value
-                        text += 'г.' + city_key + '\n'
-                        break
-
-                try:
-                    myFin = Myfin(curr_url, city_url)
-                    banks = myFin.get_rate()
-
-                    if len(banks) >= 5:
-                        banks = banks[0:5]
-                        for bank in banks:
-                            text += f'{bank.bank_name}\nПокупка: {bank.rate_buy} руб.\n' \
-                                    f'Продажа: {bank.rate_sell} руб.\n\n'
-                    elif len(banks) == 0:
-                        text += 'Видимо эта валюты не присутствует в городе'
-                    else:
-                        for bank in banks:
-                            text += f'{bank.bank_name}\nПокупка: {bank.rate_buy} руб.\n' \
-                                    f'Продажа: {bank.rate_sell} руб.\n\n'
-                except MyFinBankError:
-                    bot.send_message(
-                        chat_id,
-                        'Произошла неизвестная ошибка'
-                    )
-
-                bot.send_message(
-                    chat_id,
-                    text
-                )
-            else:
-                bot.send_message(
-                    chat_id,
-                    'Прости, но я ничего не нашел'
-                )
+            bot.send_message(
+                chat_id,
+                get_currency_test(text)
+            )
 
 
 @bot.message_handler(content_types=["sticker"])
