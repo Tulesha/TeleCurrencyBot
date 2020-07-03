@@ -28,7 +28,7 @@ def do_start(message):
     Logs.log_message(
         bot.send_message(
             message.chat.id,
-            'Привет! Я бот и мне нормально')
+            'Привет! Я Вася и я чудо машина')
     )
 
 
@@ -43,7 +43,7 @@ def do_help(message):
     Logs.log_message(
         bot.send_message(
             message.chat.id,
-            "Это бот\n\n" +
+            "Я Вася и я умею многое. Например кушать крылышки из КФС и находить курс валют\n\n" +
             "Введите предложение, в котором есть город и валюта (доллар, евро ...), чтобы узнать курс\n\n" +
             "Чтобы узнать курс в ЦБ, напишите /cb *Валюта на русском языке* *Дата в формате ДЕНЬ-МЕСЯЦ-ГОД*\n\n" +
             "Чтобы узнать какие города поддерживаются, напишите /cities\n\n" +
@@ -61,7 +61,7 @@ def do_cities(message):
     :return: информация о городах
     """
     Logs.log_message(message)
-    text = ''
+    text = 'Вася машина и он везде:\n'
     for city in cities.keys():
         text = text + city + '\n'
     Logs.log_message(
@@ -130,7 +130,7 @@ def do_cb(message):
             Logs.log_message(
                 bot.send_message(
                     chat_id,
-                    'Прости, но ты ввел команду неправильно'
+                    'Прости, но ты ввел команду неправильно. За это Вася тебя не любит'
                 )
             )
 
@@ -139,7 +139,7 @@ def do_cb(message):
         Logs.log_message(
             bot.send_message(
                 chat_id,
-                'По данной дате ничего не найдено. Вы вышли за пределы.'
+                'По данной дате ничего не найдено, так как вы вышли за пределы. Соблюдай пределы, или встретишь Васю'
             )
         )
     except ValueError:
@@ -147,7 +147,7 @@ def do_cb(message):
         Logs.log_message(
             bot.send_message(
                 chat_id,
-                'Вы ввели невалидную дату'
+                'Вы ввели невалидную дату. За такое Вася и обидеться может'
             )
         )
     except IndexError:
@@ -155,7 +155,7 @@ def do_cb(message):
         Logs.log_message(
             bot.send_message(
                 chat_id,
-                'Пожалуйста введите /cb *Валюты на русском языке* *ДЕНЬ-МЕСЯЦ-ГОД*'
+                'Пожалуйста введите /cb *Валюты на русском языке* *ДЕНЬ-МЕСЯЦ-ГОД*. Нужно больше крылышек из КФС.'
             )
         )
 
@@ -202,7 +202,7 @@ def get_currency_test(text: str):
                     text += f'{bank.bank_name}\nПокупка: {bank.rate_buy} руб.\n' \
                             f'Продажа: {bank.rate_sell} руб.\n\n'
             elif len(banks) == 0:
-                text += 'Видимо эта валюты не присутствует в городе'
+                text += 'Видимо эта валюты не присутствует в городе. Вася съел все крылышки за эти деньги'
             else:
                 for bank in banks:
                     text += f'{bank.bank_name}\nПокупка: {bank.rate_buy} руб.\n' \
@@ -211,10 +211,10 @@ def get_currency_test(text: str):
             return text
         except MyFinBankError:
             Logs.log_exceptions(MyFinBankError)
-            text = 'Произошла неизвестная ошибка'
+            text = 'Произошла неизвестная ошибка. Вася приносит прощение'
             return text
     else:
-        text = 'Прости, но я ничего не нашел'
+        text = 'Прости, но я ничего не нашел. Зато Вася нашел баскет с крылышками.'
         return text
 
 
