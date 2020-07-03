@@ -12,6 +12,8 @@ from apis.cbBank import CentralBankError
 from apis.Myfin import Myfin
 from apis.Myfin import MyFinBankError
 
+import logger.Logger as Logs
+
 bot = telebot.TeleBot(TG_TOKEN)
 
 
@@ -22,7 +24,12 @@ def do_start(message):
     :param message: сообщение пользователя
     :return: сообщение о старте
     """
-    bot.send_message(message.chat.id, 'Привет! Я бот и мне нормально')
+    Logs.log_message(message)
+    Logs.log_message(
+        bot.send_message(
+            message.chat.id,
+            'Привет! Я бот и мне нормально')
+    )
 
 
 @bot.message_handler(commands=['help'])
@@ -32,14 +39,17 @@ def do_help(message):
     :param message: ссообщение от пользователя
     :return: сообщение о помощи
     """
-    bot.send_message(
-        message.chat.id,
-        "Это бот\n\n" +
-        "Введите предложение, в котором есть город и валюта (доллар, евро ...), чтобы узнать курс\n\n" +
-        "Чтобы узнать курс в ЦБ, напишите /cb *Валюта на русском языке* *Дата в формате ДЕНЬ-МЕСЯЦ-ГОД*\n\n" +
-        "Чтобы узнать какие города поддерживаются, напишите /cities\n\n" +
-        "Поддерживаются валюты: доллар, евро, фунт, иена, юань(не поддерживается в ЦБ)\n\n" +
-        "Также я отвечу повотором на любое твое сообщение",
+    Logs.log_message(message)
+    Logs.log_message(
+        bot.send_message(
+            message.chat.id,
+            "Это бот\n\n" +
+            "Введите предложение, в котором есть город и валюта (доллар, евро ...), чтобы узнать курс\n\n" +
+            "Чтобы узнать курс в ЦБ, напишите /cb *Валюта на русском языке* *Дата в формате ДЕНЬ-МЕСЯЦ-ГОД*\n\n" +
+            "Чтобы узнать какие города поддерживаются, напишите /cities\n\n" +
+            "Поддерживаются валюты: доллар, евро, фунт, иена, юань(не поддерживается в ЦБ)\n\n" +
+            "Также я отвечу повотором на любое твое сообщение",
+        )
     )
 
 
@@ -50,12 +60,15 @@ def do_cities(message):
     :param message: сообщение от пользователя
     :return: информация о городах
     """
+    Logs.log_message(message)
     text = ''
     for city in cities.keys():
         text = text + city + '\n'
-    bot.send_message(
-        message.chat.id,
-        text
+    Logs.log_message(
+        bot.send_message(
+            message.chat.id,
+            text
+        )
     )
 
 
@@ -67,6 +80,7 @@ def do_cb(message):
     :return: информация о курсе за текующую дату
     """
     chat_id = message.chat.id
+    Logs.log_message(message)
     try:
         text = str(message.text).lower()
         result = re.findall(r'доллар|евр|фунт|иен|', text)
@@ -82,52 +96,76 @@ def do_cb(message):
 
             if result[0] == 'доллар':
                 rate_usd = bank.get_rates_usd()
-                bot.send_message(
-                    chat_id,
-                    text + f'{rate_usd.name}\n{rate_usd.rate} руб.'
+                Logs.log_message(
+                    bot.send_message(
+                        chat_id,
+                        text + f'{rate_usd.name}\n{rate_usd.rate} руб.'
+                    )
                 )
             if result[0] == 'евр':
                 rate_eur = bank.get_rates_eur()
-                bot.send_message(
-                    chat_id,
-                    text + f'{rate_eur.name}\n{rate_eur.rate}руб.'
+                Logs.log_message(
+                    bot.send_message(
+                        chat_id,
+                        text + f'{rate_eur.name}\n{rate_eur.rate}руб.'
+                    )
                 )
             if result[0] == 'фунт':
                 rate_gbp = bank.get_rates_gbp()
-                bot.send_message(
-                    chat_id,
-                    text + f'{rate_gbp.name}\n{rate_gbp.rate}руб.'
+                Logs.log_message(
+                    bot.send_message(
+                        chat_id,
+                        text + f'{rate_gbp.name}\n{rate_gbp.rate}руб.'
+                    )
                 )
             if result[0] == 'иен':
                 rate_jpy = bank.get_rates_jpy()
-                bot.send_message(
-                    chat_id,
-                    text + f'{rate_jpy.name}\n{rate_jpy.rate}руб.'
+                Logs.log_message(
+                    bot.send_message(
+                        chat_id,
+                        text + f'{rate_jpy.name}\n{rate_jpy.rate}руб.'
+                    )
                 )
         else:
-            bot.send_message(
-                chat_id,
-                'Прости, но ты ввел команду неправильно'
+            Logs.log_message(
+                bot.send_message(
+                    chat_id,
+                    'Прости, но ты ввел команду неправильно'
+                )
             )
 
     except CentralBankError:
-        bot.send_message(
-            chat_id,
-            'По данной дате ничего не найдено. Вы вышли за пределы.'
+        Logs.log_exceptions(CentralBankError)
+        Logs.log_message(
+            bot.send_message(
+                chat_id,
+                'По данной дате ничего не найдено. Вы вышли за пределы.'
+            )
         )
     except ValueError:
-        bot.send_message(
-            chat_id,
-            'Вы ввели невалидную дату'
+        Logs.log_exceptions(ValueError)
+        Logs.log_message(
+            bot.send_message(
+                chat_id,
+                'Вы ввели невалидную дату'
+            )
         )
     except IndexError:
-        bot.send_message(
-            chat_id,
-            'Пожалуйста введите /cb *Валюты на русском языке* *ДЕНЬ-МЕСЯЦ-ГОД*'
+        Logs.log_exceptions(IndexError)
+        Logs.log_message(
+            bot.send_message(
+                chat_id,
+                'Пожалуйста введите /cb *Валюты на русском языке* *ДЕНЬ-МЕСЯЦ-ГОД*'
+            )
         )
 
 
 def get_currency_test(text: str):
+    """
+    Функция поиска конкретной валюты в конкретном городе
+    :param text: сообщение пользователя
+    :return: курс валюты
+    """
     result = re.findall(r'доллар|евр|юан|фунт|иен|', text)
     result += re.findall(
         r'благовещенск|архангельск|астрахан|белгород|брянск|владимир|волгоград|вологд|воронеж|иванов|иркутск|'
@@ -172,6 +210,7 @@ def get_currency_test(text: str):
 
             return text
         except MyFinBankError:
+            Logs.log_exceptions(MyFinBankError)
             text = 'Произошла неизвестная ошибка'
             return text
     else:
@@ -189,18 +228,24 @@ def do_get_curr(message):
     if message.chat.type == "private":
         chat_id = message.chat.id
         text = str(message.text).lower()
-        bot.send_message(
-            chat_id,
-            get_currency_test(text)
+        Logs.log_message(message)
+        Logs.log_message(
+            bot.send_message(
+                chat_id,
+                get_currency_test(text)
+            )
         )
 
     if message.chat.type == "group":
         chat_id = message.chat.id
         text = str(message.text).lower()
         if text.find('@Currency_ITMO_bot'.lower()) > -1:
-            bot.send_message(
-                chat_id,
-                get_currency_test(text)
+            Logs.log_message(message)
+            Logs.log_message(
+                bot.send_message(
+                    chat_id,
+                    get_currency_test(text)
+                )
             )
 
 
@@ -212,9 +257,12 @@ def do_sticker(message):
     :return: ответ на стикер
     """
     if message.chat.type == "private":
-        bot.send_message(
-            message.chat.id,
-            'Классный стикер'
+        Logs.log_message(message)
+        Logs.log_message(
+            bot.send_message(
+                message.chat.id,
+                'Классный стикер'
+            )
         )
 
 
@@ -226,9 +274,12 @@ def do_photo(message):
     :return: ответ на фото
     """
     if message.chat.type == "private":
-        bot.send_message(
-            message.chat.id,
-            'Классное фото'
+        Logs.log_message(message)
+        Logs.log_message(
+            bot.send_message(
+                message.chat.id,
+                'Классное фото'
+            )
         )
 
 
@@ -240,9 +291,12 @@ def do_audio(message):
     :return: ответ на аудио
     """
     if message.chat.type == "private":
-        bot.send_message(
-            message.chat.id,
-            'Классное аудио'
+        Logs.log_message(message)
+        Logs.log_message(
+            bot.send_message(
+                message.chat.id,
+                'Классное аудио'
+            )
         )
 
 
@@ -254,9 +308,12 @@ def do_document(message):
     :return: ответ на документ
     """
     if message.chat.type == "private":
-        bot.send_message(
-            message.chat.id,
-            'Классный документ'
+        Logs.log_message(message)
+        Logs.log_message(
+            bot.send_message(
+                message.chat.id,
+                'Классный документ'
+            )
         )
 
 
