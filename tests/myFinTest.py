@@ -13,21 +13,36 @@ class TestMyfinMethods(unittest.TestCase):
         with self.assertRaises(MyFinBankError):
             parser_HTML('fgvbhnjk', 'cfvgbhnjmk')
 
-    def test_get_rate_is_not_None(self):
+    def test_get_rate_type(self):
         bank_1 = Myfin('usd', 'moskva')
-        self.assertIsNotNone(bank_1.get_rate())
+        for bank in bank_1.get_rate():
+            self.assertTrue(isinstance(bank.bank_name, str))
+            self.assertTrue(isinstance(bank.rate_buy, float))
+            self.assertTrue(isinstance(bank.rate_sell, float))
 
         bank_2 = Myfin('eur', 'moskva')
-        self.assertIsNotNone(bank_2.get_rate())
+        for bank in bank_2.get_rate():
+            self.assertTrue(isinstance(bank.bank_name, str))
+            self.assertTrue(isinstance(bank.rate_buy, float))
+            self.assertTrue(isinstance(bank.rate_sell, float))
 
         bank_3 = Myfin('gbp', 'moskva')
-        self.assertIsNotNone(bank_3.get_rate())
+        for bank in bank_3.get_rate():
+            self.assertTrue(isinstance(bank.bank_name, str))
+            self.assertTrue(isinstance(bank.rate_buy, float))
+            self.assertTrue(isinstance(bank.rate_sell, float))
 
         bank_4 = Myfin('jpy', 'moskva')
-        self.assertIsNotNone(bank_4.get_rate())
+        for bank in bank_4.get_rate():
+            self.assertTrue(isinstance(bank.bank_name, str))
+            self.assertTrue(isinstance(bank.rate_buy, float))
+            self.assertTrue(isinstance(bank.rate_sell, float))
 
         bank_5 = Myfin('cny', 'moskva')
-        self.assertIsNotNone(bank_5.get_rate())
+        for bank in bank_5.get_rate():
+            self.assertTrue(isinstance(bank.bank_name, str))
+            self.assertTrue(isinstance(bank.rate_buy, float))
+            self.assertTrue(isinstance(bank.rate_sell, float))
 
     def test_myFin_constructor_error(self):
         with self.assertRaises(MyFinBankError):

@@ -68,8 +68,8 @@ class Myfin:
             for item in info_odd:
                 bank_name = item.find('td', {'class': 'bank_name'}).text
                 rates = item.find_all('td', {'class': self.__currency_name.upper()})
-                rate_buy = rates[0].text
-                rate_sell = rates[1].text
+                rate_buy = float(rates[0].text)
+                rate_sell = float(rates[1].text)
 
                 r = Rate(bank_name=bank_name, rate_buy=rate_buy,
                          rate_sell=rate_sell)
@@ -78,8 +78,8 @@ class Myfin:
             for item in info_even:
                 bank_name = item.find('td', {'class': 'bank_name'}).text
                 rates = item.find_all('td', {'class': self.__currency_name.upper()})
-                rate_buy = rates[0].text
-                rate_sell = rates[1].text
+                rate_buy = float(rates[0].text)
+                rate_sell = float(rates[1].text)
 
                 r = Rate(bank_name=bank_name, rate_buy=rate_buy,
                          rate_sell=rate_sell)
